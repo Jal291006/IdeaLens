@@ -63,6 +63,12 @@ router.post('/analyze', analyzeLimiter, async (req, res, next) => {
     // 5. Gemini AI Explanation & Differences
     const explanation = await explainSimilaritiesAndDifferences(project, similarityResults.comparisons);
 
+    // Cliché Override: If project is an overdone hackathon cliché, enforce high duplicate risk
+    if (explanation.is_critically_cliche && (explanation.cliche_duplicate_penalty || 85) > similarityResults.highestSimilarityScore) {
+      similarityResults.highestSimilarityScore = explanation.cliche_duplicate_penalty || 88;
+      similarityResults.overallRisk = 'High Duplicate Risk';
+    }
+
     // 6. Gemini AI Innovation Recommendations
     const innovation = await generateInnovationRecommendations(project, similarityResults.comparisons);
 
