@@ -31,6 +31,11 @@ const ProjectAnalysisSchema = new mongoose.Schema({
     type: String,
     default: 'General'
   },
+  clientId: {
+    type: String,
+    default: 'anonymous',
+    index: true
+  },
   // Extracted features via AI
   extractedFeatures: {
     main_objective: String,
@@ -77,6 +82,10 @@ const ProjectAnalysisSchema = new mongoose.Schema({
     how_it_differs: String,
     implementation_complexity: String
   }],
+  evolutionRoadmap: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {}
+  },
   status: {
     type: String,
     enum: ['completed', 'partial', 'failed'],
@@ -92,7 +101,7 @@ const ProjectAnalysisSchema = new mongoose.Schema({
 ProjectAnalysisSchema.index({ createdAt: -1 });
 ProjectAnalysisSchema.index({ title: 'text', description: 'text' });
 
-const ProjectAnalysis = mongoose.models.ProjectAnalysis || mongoose.model('ProjectAnalysis', ProjectAnalysisSchema);
+const ProjectAnalysis = mongoose.models.ProjectAnalysis || mongoose.model('ProjectAnalysis', ProjectAnalysisSchema, 'project_audits');
 
 // In-memory resilient store when MongoDB is offline
 const memoryStore = new Map();
@@ -127,19 +136,26 @@ async function saveAnalysisReport(data) {
 /**
  * Retrieves paginated analyses from MongoDB or in-memory store
  */
-async function getAnalysisHistory(page = 1, limit = 10, search = '') {
+async function getAnalysisHistory(page = 1, limit = 10, search = '', clientId = '') {
   const isMongoReady = mongoose.connection.readyState === 1;
 
   if (isMongoReady) {
     try {
-      const query = search ? { $text: { $search: search } } : {};
+      const query = {};
+      if (clientId) {
+        query.clientId = clientId;
+      }
+      if (search) {
+        query.$text = { $search: search };
+      }
+
       const skip = (page - 1) * limit;
       const [items, total] = await Promise.all([
         ProjectAnalysis.find(query)
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(limit)
-          .select('title category similarityResults.highestSimilarityScore similarityResults.overallRisk status createdAt')
+          .select('title category clientId similarityResults.highestSimilarityScore similarityResults.overallRisk similarityResults.topMatch status createdAt')
           .lean(),
         ProjectAnalysis.countDocuments(query)
       ]);
@@ -152,6 +168,9 @@ async function getAnalysisHistory(page = 1, limit = 10, search = '') {
 
   // Read from memory store
   let items = Array.from(memoryStore.values());
+  if (clientId) {
+    items = items.filter(i => i.clientId === clientId);
+  }
   if (search) {
     const s = search.toLowerCase();
     items = items.filter(i => i.title.toLowerCase().includes(s) || i.description.toLowerCase().includes(s));

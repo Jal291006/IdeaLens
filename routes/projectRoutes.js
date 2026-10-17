@@ -2,12 +2,13 @@ const express = require('express');
 const router = express.Router();
 const { z } = require('zod');
 const { analyzeLimiter } = require('../middleware/rateLimiter');
-const { discoverRelevantRepositories } = require('../services/githubService');
+const { discoverRelevantRepositories, fetchRepoByUrl } = require('../services/githubService');
 const { rankCandidateRepositories } = require('../services/similarityEngine');
 const {
   extractProjectFeatures,
   explainSimilaritiesAndDifferences,
-  generateInnovationRecommendations
+  generateInnovationRecommendations,
+  generateEvolutionRoadmap
 } = require('../services/geminiService');
 const {
   saveAnalysisReport,
@@ -24,7 +25,8 @@ const ProjectSubmissionSchema = z.object({
   solution: z.string().optional().default(''),
   mainFeatures: z.array(z.string()).optional().default([]),
   technologies: z.array(z.string()).min(1, 'Please provide at least one technology (e.g. Python, React)'),
-  category: z.string().optional().default('General')
+  category: z.string().optional().default('General'),
+  clientId: z.string().optional().default('anonymous')
 });
 
 /**
@@ -64,6 +66,9 @@ router.post('/analyze', analyzeLimiter, async (req, res, next) => {
     // 6. Gemini AI Innovation Recommendations
     const innovation = await generateInnovationRecommendations(project, similarityResults.comparisons);
 
+    // 6b. Gemini Project Evolution: What user built vs What to improve & Future Scope
+    const evolutionRoadmap = await generateEvolutionRoadmap(project, similarityResults.comparisons);
+
     // 7. Compile report
     const reportData = {
       title: project.title,
@@ -72,6 +77,7 @@ router.post('/analyze', analyzeLimiter, async (req, res, next) => {
       solution: project.solution,
       technologies: project.technologies,
       category: project.category,
+      clientId: project.clientId || req.headers['x-client-id'] || 'anonymous',
       extractedFeatures,
       discoveredRepositories: githubDiscovery.repositories.map(r => ({
         name: r.name,
@@ -90,6 +96,7 @@ router.post('/analyze', analyzeLimiter, async (req, res, next) => {
       },
       explanation,
       innovationRecommendations: innovation.recommendations,
+      evolutionRoadmap,
       status: 'completed',
       meta: {
         queriesUsed: githubDiscovery.queriesUsed,
@@ -119,8 +126,9 @@ router.get('/', async (req, res, next) => {
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
     const search = req.query.search || '';
+    const clientId = req.query.clientId || req.headers['x-client-id'] || '';
 
-    const history = await getAnalysisHistory(page, limit, search);
+    const history = await getAnalysisHistory(page, limit, search, clientId);
     res.json({
       success: true,
       data: history
@@ -176,4 +184,29 @@ router.delete('/:id', async (req, res, next) => {
   }
 });
 
+/**
+ * POST /api/projects/fetch-repo
+ * Fetches repository metadata and README directly from a GitHub URL
+ */
+router.post('/fetch-repo', async (req, res, next) => {
+  try {
+    const { repoUrl } = req.body;
+    if (!repoUrl) {
+      return res.status(400).json({ success: false, error: 'Please provide a repoUrl.' });
+    }
+
+    const repoData = await fetchRepoByUrl(repoUrl);
+    res.json({
+      success: true,
+      data: repoData
+    });
+  } catch (err) {
+    res.status(400).json({
+      success: false,
+      error: err.message
+    });
+  }
+});
+
 module.exports = router;
+

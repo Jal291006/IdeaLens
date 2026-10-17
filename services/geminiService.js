@@ -249,8 +249,95 @@ function fallbackRecommendations(projectData) {
   };
 }
 
+/**
+ * Generates structured side-by-side: What user has built vs What needs improvement & Future scope
+ */
+async function generateEvolutionRoadmap(projectData, topRepos = []) {
+  const prompt = `
+    You are a Senior Systems Architect and Hackathon Judge.
+    Analyze this project proposal: "${projectData.title}".
+    Break down:
+    1. WHAT USER HAS MADE (current baseline, core components, strengths)
+    2. WHAT NEEDS IMPROVEMENT (critical architectural gaps, performance or scalability limitations)
+    3. FUTURE SCOPES (high-value forward-looking milestones for Phase 2 and Phase 3)
+
+    PROJECT DETAILS:
+    Title: ${projectData.title}
+    Description: ${projectData.description}
+    Technologies: ${(projectData.technologies || []).join(', ')}
+
+    Return valid JSON with schema:
+    {
+      "what_built": {
+        "summary": "1-2 sentences on what the current proposed version delivers",
+        "strengths": ["list of 2-3 solid capabilities already planned in this baseline"],
+        "current_tier": "Functional Prototype MVP"
+      },
+      "what_to_improve": {
+        "critical_gaps": [
+          {
+            "gap": "Specific technical limitation or vulnerability in current scope",
+            "why_it_matters": "Real-world consequence if not addressed"
+          }
+        ],
+        "future_scope": [
+          {
+            "phase": "Phase 2" or "Phase 3",
+            "scope_title": "Concrete innovation milestone",
+            "description": "How this elevates the project from hackathon demo to production utility"
+          }
+        ]
+      }
+    }
+  `;
+
+  const parsed = await callGeminiWithFallback(prompt);
+  if (parsed && parsed.what_built && parsed.what_to_improve) {
+    return parsed;
+  }
+
+  // Fallback roadmap
+  return {
+    what_built: {
+      summary: `Initial prototype of ${projectData.title} focusing on core data pipeline and user interface.`,
+      strengths: [
+        `Direct integration of ${(projectData.technologies || ['core stack']).slice(0, 2).join(' and ')}`,
+        'End-to-end user workflow addressing primary pain point',
+        'Demonstrable minimum viable interaction model'
+      ],
+      current_tier: 'Baseline Prototype MVP'
+    },
+    what_to_improve: {
+      critical_gaps: [
+        {
+          gap: 'Absence of automated error resilience & edge fallbacks',
+          why_it_matters: 'Network dropouts or unexpected input schemas could disrupt real-time usage.'
+        },
+        {
+          gap: 'Limited scalability benchmarks and query caching',
+          why_it_matters: 'Higher concurrent request loads will create bottlenecks on centralized endpoints.'
+        }
+      ],
+      future_scope: [
+        {
+          phase: 'Phase 2: Production Readiness',
+          scope_title: 'Offline-First Synced Architecture',
+          description: 'Deploy quantized on-device inference with local SQLite/IndexedDB caching and opportunistic sync.'
+        },
+        {
+          phase: 'Phase 3: Ecosystem Scale',
+          scope_title: 'Third-Party Telemetry & Webhook Dispatch',
+          description: 'Provide authenticated REST/GraphQL webhooks for direct integration into enterprise dashboards.'
+        }
+      ]
+    }
+  };
+}
+
 module.exports = {
   extractProjectFeatures,
   explainSimilaritiesAndDifferences,
-  generateInnovationRecommendations
+  generateInnovationRecommendations,
+  generateEvolutionRoadmap
 };
+

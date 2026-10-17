@@ -64,7 +64,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:64px;display:flex;ali
 .ex button{border:0;background:none;color:var(--bm);font-weight:600;cursor:pointer;padding:2px 6px;text-decoration:underline;text-underline-offset:3px}
 label{display:block;font-weight:600;font-size:.9rem;margin:18px 0 6px}
 .h{font-weight:400;color:var(--ink3)}
-input[type=text],select,textarea{width:100%;padding:12px 14px;border:1.5px solid #cfd5e2;border-radius:12px;background:var(--cream)}
+input[type=text],input[type=url],select,textarea{width:100%;padding:12px 14px;border:1.5px solid #cfd5e2;border-radius:12px;background:var(--cream)}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--bm);box-shadow:0 0 0 3px rgba(47,111,228,.18);background:#fff}
 textarea{resize:vertical}
 [aria-invalid=true]{border-color:var(--red)!important}
@@ -115,9 +115,25 @@ textarea{resize:vertical}
 .pv summary::after{content:"+";font-size:1.2rem;line-height:1}.pv[open] summary::after{content:"–"}
 .pv div{padding:0 14px 14px;font-size:.9rem;color:var(--ink2)}
 .fx{font:500 10px "DM Mono",monospace;padding:1px 8px;border-radius:50px;background:var(--bl-ll);color:var(--bl);margin-left:6px}
-@media(max-width:860px){footer{border-radius:36px 36px 0 0;background:var(--bd);color:#9fb3dc;padding:30px 1.5rem 40px;font-size:.88rem;border-top:1px solid rgba(255,255,255,.1)}
+@media(max-width:860px){footer{border-radius:36px 36px 0 0;background:var(--bd);color:#9fb3dc;padding:30px 1.5rem 40px;font-size:.88rem;border-top:1px solid rgba(255,255,255,.1)}}
+footer{background:var(--bd);color:#9fb3dc;padding:30px 1.5rem 40px;font-size:.88rem;border-top:1px solid rgba(255,255,255,.1);margin-top:60px}
 footer .in{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
-footer b{font-family:Fraunces,serif;color:#fff;font-size:1.1rem}
+.evo-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:16px}
+@media(max-width:860px){.evo-grid{grid-template-columns:1fr}}
+.evo-box{padding:22px;border-radius:16px;border:1px solid rgba(0,0,0,.07)}
+.evo-box.built{background:var(--cream2)}
+.evo-box.improve{background:#f0fdf4;border-color:#bbf7d0}
+.gap-item{padding:11px 13px;background:#fff;border-radius:10px;border-left:3.5px solid var(--red);font-size:.88rem;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.scope-item{padding:11px 13px;background:#fff;border-radius:10px;border-left:3.5px solid #16a34a;font-size:.88rem;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.evo-phase{font:600 11px "DM Mono",monospace;padding:2px 8px;border-radius:50px;background:#dcfce7;color:#15803d;display:inline-block;margin-bottom:4px}
+.drawer-backdrop{position:fixed;inset:0;background:rgba(20,22,31,.45);backdrop-filter:blur(4px);z-index:1000;opacity:0;pointer-events:none;transition:opacity .25s ease}
+.drawer-backdrop.open{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:100%;max-width:480px;background:#fff;z-index:1001;box-shadow:-8px 0 32px rgba(0,0,0,.15);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .3s ease}
+.drawer.open{transform:translateX(0)}
+.drawer-header{padding:18px 24px;border-bottom:1px solid #e3e6ee;display:flex;justify-content:space-between;align-items:center;background:var(--cream2)}
+.drawer-body{padding:20px 24px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:12px}
+.audit-card{padding:14px 16px;border:1px solid #e3e6ee;border-radius:14px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:transform .12s,border-color .15s}
+.audit-card:hover{border-color:var(--bm);transform:translateY(-1px)}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 20px;border-radius:50px;z-index:10000;max-width:90vw;box-shadow:var(--sh)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 [hidden]{display:none!important}
@@ -127,14 +143,20 @@ footer b{font-family:Fraunces,serif;color:#fff;font-size:1.1rem}
 <body>
 <nav aria-label="Main">
   <a class="brand" href="#top">Project<em>Shield</em> AI</a>
-  <ul class="nl"><li><a href="#tool">Check an idea</a></li></ul>
-  <a class="cta" href="#tool">Check my idea</a>
+  <ul class="nl">
+    <li><a href="#tool">Check an idea</a></li>
+    <li><button type="button" id="openHistoryBtn" style="border:0; background:none; font:inherit; color:var(--ink3); font-weight:500; cursor:pointer;">📜 Past Audits (<span id="historyBadge">0</span>)</button></li>
+  </ul>
+  <div style="margin-left:auto; display:flex; gap:10px; align-items:center;">
+    <button type="button" class="sm" id="openHistoryBtnMobile" style="font-size:13px; padding:6px 14px;">📜 Audits (<span id="historyBadgeMob">0</span>)</button>
+    <a class="cta" href="#tool">Check my idea</a>
+  </div>
 </nav>
 
 <header class="hero" id="top">
   <div class="eye">Free originality check</div>
   <h1>Check if your project idea is <em>truly original.</em></h1>
-  <p class="s">Describe your idea. We compare it with public GitHub projects and show what already exists, where you overlap, and what makes yours different.</p>
+  <p class="s">Describe your idea or paste an existing GitHub repo link. We search live public GitHub projects, calculate feature overlap, and uncover ways to make yours stand out.</p>
   <div class="btns"><a class="bp" href="#tool">Check my idea</a></div>
   <div class="mock" aria-hidden="true">
     <div class="bar"><div class="dots"><i></i><i></i><i></i></div><div class="url">projectshield.ai/check</div></div>
@@ -153,15 +175,30 @@ footer b{font-family:Fraunces,serif;color:#fff;font-size:1.1rem}
     <div class="grid">
       <section class="card" aria-labelledby="fh">
         <h3 id="fh">Describe your idea</h3>
+        
+        <!-- Examples -->
         <p class="ex">Try an example:
           <button type="button" data-s="pothole">Pothole detection</button>
           <button type="button" data-s="health">Calorie tracker</button>
-          <button type="button" data-s="pdf">Chat with PDFs</button>
+          <button type="button" data-s="weather">Weather app</button>
         </p>
+
+        <!-- Direct GitHub Repo Analyzer Bar -->
+        <div style="margin: 14px 0 16px; padding: 12px 14px; background: var(--cream); border: 1.5px dashed #cfd5e2; border-radius: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label for="repoUrlIn" style="margin: 0; font-size: 0.86rem; color: var(--ink2); font-weight: 600;">🔗 Or check directly from a GitHub repository link:</label>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <input type="url" id="repoUrlIn" placeholder="https://github.com/owner/repo" style="background:#fff; font-size:0.88rem; padding:8px 12px;">
+            <button type="button" class="sm" id="repoFetchBtn" style="white-space:nowrap; background:var(--ink); color:#fff; border:0;">Fetch &amp; Check</button>
+          </div>
+        </div>
+
         <form id="form" novalidate>
           <label for="title">Project title</label>
           <input type="text" id="title" placeholder="e.g. Smart pothole detection system" aria-describedby="eT">
           <div class="err" id="eT"></div>
+          
           <label for="cat">Category</label>
           <select id="cat">
             <option value="Smart Cities">Smart Cities &amp; IoT</option>
@@ -171,15 +208,22 @@ footer b{font-family:Fraunces,serif;color:#fff;font-size:1.1rem}
             <option value="Developer Tools">Developer Tools &amp; Productivity</option>
             <option value="Other">General / Other</option>
           </select>
+          
           <label for="techIn">Technologies <span class="h">(Enter or comma after each)</span></label>
           <div class="tags" id="tags"><input type="text" id="techIn" placeholder="Python, OpenCV…" aria-describedby="eK"></div>
           <div class="err" id="eK"></div>
+          
           <label for="problem">Problem you solve <span class="h">(optional)</span></label>
           <textarea id="problem" rows="2" placeholder="Which pain point does this target?"></textarea>
+          
           <label for="desc">What it does and how it works</label>
           <textarea id="desc" rows="5" placeholder="Describe the system, its main features and the user flow." aria-describedby="eD"></textarea>
           <div class="err" id="eD"></div>
-          <div class="acts"><button type="button" class="bo" id="clear">Clear</button><button type="submit" class="bp" id="go">Check originality</button></div>
+          
+          <div class="acts">
+            <button type="button" class="bo" id="clear">Clear</button>
+            <button type="submit" class="bp" id="go">Check originality</button>
+          </div>
         </form>
       </section>
 
@@ -192,7 +236,11 @@ footer b{font-family:Fraunces,serif;color:#fff;font-size:1.1rem}
         <span class="badge" id="badge">Not checked yet</span>
         <p class="vd" id="vd" role="status">Fill in the form and your score will appear here.</p>
         <div class="leg" aria-hidden="true"><span><i style="background:var(--red)"></i>0–39 common</span><span><i style="background:var(--amb)"></i>40–69 partly</span><span><i style="background:var(--bm)"></i>70–100 original</span></div>
-        <div class="acts" style="justify-content:center" id="tools" hidden><button type="button" class="sm" id="copy">Copy report</button><button type="button" class="sm" id="edit">Edit and re-check</button></div>
+        <div class="acts" style="justify-content:center" id="tools" hidden>
+          <button type="button" class="sm" id="copy">Copy report</button>
+          <button type="button" class="sm" id="printReport">🖨️ Print / PDF</button>
+          <button type="button" class="sm" id="edit">Edit and re-check</button>
+        </div>
       </section>
     </div>
 
@@ -211,10 +259,65 @@ footer b{font-family:Fraunces,serif;color:#fff;font-size:1.1rem}
         <h3 id="c3">Your unique edge</h3><p class="cap">What sets your idea apart, and how to strengthen it.</p>
         <div class="pb"><div class="r"><span>Originality</span><span id="uv"></span></div><div class="trk" role="progressbar" aria-label="Originality" aria-valuemin="0" aria-valuemax="100" id="up"><i id="ui"></i></div></div>
         <ul class="li f" id="dil"></ul><div id="pvs"></div>
-      </section>
+    </div>
+
+    <!-- Project Evolution Roadmap: What User Made vs What to Improve & Future Scope -->
+    <div class="card" id="roadmapSection" style="margin-top:28px; border-top:4px solid var(--bm);" hidden>
+      <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+        <div>
+          <h3 style="font-size:1.55rem; margin-bottom:4px;">Project Evolution: What You Built vs. Future Scope</h3>
+          <p class="cap" style="margin:0;">Architectural breakdown of your baseline implementation, critical gaps to address, and scalable future scope.</p>
+        </div>
+        <span class="badge" id="currentTierBadge" style="background:var(--bl-ll); color:var(--bl); font-size:.86rem; padding:6px 16px;">Baseline Prototype MVP</span>
+      </div>
+
+      <div class="evo-grid">
+        <!-- Left Column: What User Built -->
+        <div class="evo-box built">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+            <span style="font-size:1.3rem;">📦</span>
+            <h4 style="font-size:1.15rem; font-weight:700; margin:0;">What You Have Made (Current Scope)</h4>
+          </div>
+          <p id="builtSummary" style="font-size:.92rem; color:var(--ink2); margin-bottom:14px; line-height:1.5;"></p>
+          <h5 style="font-size:.82rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--ink3); margin-bottom:8px;">Core Capabilities Planned:</h5>
+          <ul id="builtStrengths" class="li" style="gap:6px;"></ul>
+        </div>
+
+        <!-- Right Column: What to Improve & Future Scope -->
+        <div class="evo-box improve">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+            <span style="font-size:1.3rem;">🚀</span>
+            <h4 style="font-size:1.15rem; font-weight:700; color:#166534; margin:0;">What to Improve &amp; Future Scope</h4>
+          </div>
+          
+          <h5 style="font-size:.82rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--red); margin-bottom:8px;">⚠️ Technical Gaps to Address:</h5>
+          <div id="improveGaps"></div>
+
+          <h5 style="font-size:.82rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:#15803d; margin:16px 0 8px;">🔮 High-Impact Future Scope:</h5>
+          <div id="futureMilestones"></div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
+
+<!-- Saved Audits Drawer -->
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<aside class="drawer" id="historyDrawer" aria-label="Project Audits History">
+  <div class="drawer-header">
+    <div>
+      <h3 style="font-size:1.3rem; margin:0;">📜 Saved Project Audits</h3>
+      <p style="font-size:.82rem; color:var(--ink3); margin:2px 0 0;">Stored in MongoDB Database</p>
+    </div>
+    <button type="button" class="sm" id="closeHistoryBtn" style="padding:4px 10px; font-size:1.1rem; line-height:1;">✕</button>
+  </div>
+  <div style="padding:14px 24px; border-bottom:1px solid #e3e6ee; background:#fff;">
+    <input type="text" id="historySearch" placeholder="🔍 Search saved ideas..." style="padding:8px 12px; font-size:.86rem; border-radius:10px;">
+  </div>
+  <div class="drawer-body" id="historyList">
+    <!-- Injected dynamically -->
+  </div>
+</aside>
 
 <footer><div class="in"><b>ProjectShield AI</b><span>Scores are guidance, not proof. Built for a hackathon.</span></div></footer>
 <div class="toast" id="toast" role="status" hidden></div>
@@ -223,36 +326,64 @@ footer b{font-family:Fraunces,serif;color:#fff;font-size:1.1rem}
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const url=u=>/^https?:\/\//i.test(u||'')?esc(u):'#';
+
 const S={
  pothole:{t:"Smart Pothole Detection & Road Damage Mapping",c:"Smart Cities",k:"Python, OpenCV, YOLO, Flutter, GPS",p:"Road damage causes thousands of vehicle accidents and damage annually without fast reporting.",d:"An edge-computed mobile system using smartphone or dashboard cameras with YOLO object detection to identify potholes, measure damage severity, tag GPS coordinates, and transmit coordinates to municipal road maintenance servers."},
  health:{t:"HealthTrack AI - Smart Calorie & Meal Logger",c:"Healthcare",k:"React Native, Node.js, Express, MongoDB, Vision AI",p:"Manual food journaling is tedious and users abandon diet tracking within two weeks.",d:"Users photograph their food plates. The system detects meal items, computes estimated portion sizes, calculates calorie and macronutrient breakdown, and gives daily dietary alerts."},
- pdf:{t:"DocuChat - Chat with PDF Research Papers using RAG",c:"Developer Tools",k:"Python, FastAPI, LangChain, ChromaDB, React",p:"Students and researchers struggle to read 50-page technical papers quickly.",d:"Upload technical PDFs or textbooks, vectorize content into vector embeddings, and ask questions with exact page references and cited quotes."}
+ weather:{t:"Real-Time Weather App using OpenWeatherMap API",c:"Other",k:"React, JavaScript, HTML, CSS, OpenWeatherMap API",p:"Users want a simple way to look up current temperature, humidity, and forecast.",d:"A web application built with React where users search for a city name. The app fetches live weather data from OpenWeatherMap API and displays current temperature, weather icons, wind speed, and a 5-day forecast."}
 };
+
 let techs=[],R=null,shown=4,tm;
+
 function toast(m){const t=$('toast');t.textContent=m;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,3000)}
 function fail(i,f,m){$(i).textContent=m;if(f)$(f).setAttribute('aria-invalid','true')}
 function ok(i,f){$(i).textContent='';if(f)$(f).removeAttribute('aria-invalid')}
 
 function drawTags(){
   $('tags').querySelectorAll('.tg').forEach(n=>n.remove());
-  techs.forEach((t,i)=>{const s=document.createElement('span');s.className='tg';s.innerHTML=esc(t)+`<button type="button" data-i="${i}" aria-label="Remove ${esc(t)}">×</button>`;$('tags').insertBefore(s,$('techIn'))});
+  techs.forEach((t,i)=>{
+    const s=document.createElement('span');s.className='tg';
+    s.innerHTML=esc(t)+`<button type="button" data-i="${i}" aria-label="Remove ${esc(t)}">×</button>`;
+    $('tags').insertBefore(s,$('techIn'));
+  });
 }
-function addTech(v){v=v.trim();if(v&&!techs.some(t=>t.toLowerCase()===v.toLowerCase())){techs.push(v);drawTags()}$('techIn').value='';if(techs.length)ok('eK')}
+
+function addTech(v){
+  v=v.trim();
+  if(v&&!techs.some(t=>t.toLowerCase()===v.toLowerCase())){techs.push(v);drawTags()}
+  $('techIn').value='';
+  if(techs.length)ok('eK');
+}
+
 $('techIn').addEventListener('keydown',e=>{
   if(e.key==='Enter'||e.key===','){e.preventDefault();addTech($('techIn').value)}
   else if(e.key==='Backspace'&&!$('techIn').value&&techs.length){techs.pop();drawTags()}
 });
 $('techIn').addEventListener('blur',()=>addTech($('techIn').value));
-$('tags').addEventListener('click',e=>{const b=e.target.closest('[data-i]');if(b){techs.splice(+b.dataset.i,1);drawTags()}$('techIn').focus()});
+$('tags').addEventListener('click',e=>{
+  const b=e.target.closest('[data-i]');
+  if(b){techs.splice(+b.dataset.i,1);drawTags()}
+  $('techIn').focus();
+});
+
 $('title').addEventListener('input',()=>ok('eT','title'));
 $('desc').addEventListener('input',()=>ok('eD','desc'));
+
 document.querySelectorAll('[data-s]').forEach(b=>b.addEventListener('click',()=>{
-  const s=S[b.dataset.s];$('title').value=s.t;$('cat').value=s.c;$('problem').value=s.p;$('desc').value=s.d;techs=s.k.split(',').map(x=>x.trim());drawTags();
+  const s=S[b.dataset.s];
+  $('title').value=s.t;
+  $('cat').value=s.c;
+  $('problem').value=s.p;
+  $('desc').value=s.d;
+  techs=s.k.split(',').map(x=>x.trim());
+  drawTags();
   ok('eT','title');ok('eK');ok('eD','desc');
 }));
+
 $('clear').addEventListener('click',()=>{$('form').reset();techs=[];drawTags();ok('eT','title');ok('eK');ok('eD','desc')});
 
 function state(o){return o>=70?['var(--bm)','var(--bl-ll)','Highly original']:o>=40?['var(--amb)','var(--amb-l)','Partly original']:['var(--red)','var(--red-l)','Common idea']}
+
 function setMeter(o){
   const g=$('gw');
   if(o==null){$('vl').setAttribute('stroke-dasharray','0 100');$('num').textContent='–';g.removeAttribute('aria-valuenow');g.setAttribute('aria-valuetext','Not calculated yet');return}
@@ -261,15 +392,18 @@ function setMeter(o){
   $('vl').setAttribute('stroke-dasharray',`${o} 100`);$('num').textContent=o;$('badge').textContent=l;
   g.setAttribute('aria-valuenow',o);g.setAttribute('aria-valuetext',`${o} out of 100, ${l}`);
 }
+
 function busy(on){
   $('mcard').setAttribute('aria-busy',on);
   if(on){
     $('cols').hidden=true;$('tools').hidden=true;setMeter(null);$('badge').textContent='Checking…';
-    const L=['Searching public GitHub repositories…','Comparing features with your idea…','Looking for ways to make it stand out…'];let i=0;$('vd').textContent=L[0];
+    const L=['Searching public GitHub repositories…','Comparing features with your idea…','Looking for ways to make it stand out…'];
+    let i=0;$('vd').textContent=L[0];
     clearInterval(tm);tm=setInterval(()=>{i=Math.min(i+1,2);$('vd').textContent=L[i]},3500);
   }else clearInterval(tm);
 }
 
+// Check by form submit
 $('form').addEventListener('submit',async e=>{
   e.preventDefault();addTech($('techIn').value);
   const title=$('title').value.trim(),description=$('desc').value.trim();let bad=null;
@@ -277,19 +411,92 @@ $('form').addEventListener('submit',async e=>{
   if(!techs.length){fail('eK',null,'Add at least one technology.');bad=bad||$('techIn')}
   if(!description){fail('eD','desc','Describe what your project does.');bad=bad||$('desc')}
   if(bad){bad.focus();return}
+  
+  await triggerAnalysis({
+    title,
+    category:$('cat').value,
+    technologies:techs,
+    problem:$('problem').value.trim(),
+    solution:description,
+    description
+  });
+});
+
+// Check directly by GitHub Repo URL
+$('repoFetchBtn').addEventListener('click', async () => {
+  const repoUrl = $('repoUrlIn').value.trim();
+  if(!repoUrl) { toast('Please enter a GitHub repository URL.'); return; }
+
+  $('repoFetchBtn').disabled = true;
+  $('repoFetchBtn').textContent = 'Fetching…';
+  busy(true);
+
+  try {
+    const res = await fetch('/api/projects/fetch-repo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ repoUrl })
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Failed to fetch repository.');
+
+    const repo = json.data;
+    $('title').value = repo.title;
+    $('desc').value = `${repo.description}\n${repo.readmeSnippet || ''}`.slice(0, 2000);
+    $('problem').value = `Existing public repository at ${repo.repoUrl}`;
+    techs = repo.technologies || [];
+    drawTags();
+    ok('eT','title');ok('eK');ok('eD','desc');
+
+    toast(`Fetched ${repo.fullName}! Now checking competitor overlap…`);
+
+    await triggerAnalysis({
+      title: repo.title,
+      category: 'Developer Tools',
+      technologies: techs,
+      problem: `Existing project repository at ${repo.repoUrl}`,
+      solution: repo.readmeSnippet || repo.description,
+      description: $('desc').value
+    });
+
+  } catch(err) {
+    busy(false);
+    $('badge').textContent = 'Fetch failed';
+    $('vd').textContent = err.message;
+    toast(err.message);
+  } finally {
+    $('repoFetchBtn').disabled = false;
+    $('repoFetchBtn').textContent = 'Fetch & Check';
+  }
+});
+
+async function triggerAnalysis(payload) {
   $('go').disabled=true;$('go').textContent='Checking…';busy(true);
   if(innerWidth<=940)$('mcard').scrollIntoView({behavior:'smooth'});
   try{
-    const res=await fetch('/api/projects/analyze',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({title,category:$('cat').value,technologies:techs,problem:$('problem').value.trim(),solution:description,description})});
+    payload.clientId = getClientId();
+    const res=await fetch('/api/projects/analyze',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-client-id': getClientId()
+      },
+      body:JSON.stringify(payload)
+    });
     const out=await res.json();
     if(!res.ok)throw new Error(out.error||'The check failed. Try again.');
-    busy(false);render(out.data);
-  }catch(err){busy(false);$('badge').textContent='Check failed';$('vd').textContent=err.message;toast(err.message)}
-  finally{$('go').disabled=false;$('go').textContent='Check originality'}
-});
+    busy(false);
+    render(out.data);
+    loadHistory();
+  }catch(err){
+    busy(false);$('badge').textContent='Check failed';$('vd').textContent=err.message;toast(err.message);
+  }finally{
+    $('go').disabled=false;$('go').textContent='Check originality';
+  }
+}
 
 function bar(i,v,p){$(i).style.width='0';requestAnimationFrame(()=>$(i).style.width=v+'%');if(p)$(p).setAttribute('aria-valuenow',v)}
+
 function render(r){
   R=r;shown=4;
   const sr=r.similarityResults||{},sim=Math.max(0,Math.min(100,Math.round(sr.highestSimilarityScore||0))),o=100-sim;
@@ -309,25 +516,193 @@ function render(r){
   const p=r.innovationRecommendations||[];
   $('pvs').innerHTML=p.map((x,i)=>`<details class="pv"><summary><span>${esc(x.pivot_title)}<span class="fx">${esc(x.implementation_complexity||'?')} effort</span></span></summary><div><p style="margin:0 0 8px">${esc(x.reason_for_suggestion)}</p><p style="margin:0 0 10px"><b>What sets you apart:</b> ${esc(x.how_it_differs)}</p><button type="button" class="sm" data-u="${i}">Add to my idea</button></div></details>`).join('');
   $('cols').hidden=false;
+
+  // Evolution Roadmap rendering: What User Built vs What to Improve & Future Scope
+  const evo = r.evolutionRoadmap || {};
+  const wb = evo.what_built || {};
+  const wi = evo.what_to_improve || {};
+
+  $('builtSummary').textContent = wb.summary || 'Initial baseline proposal focused on core architecture.';
+  $('currentTierBadge').textContent = wb.current_tier || 'Prototype Baseline';
+
+  const strengths = wb.strengths || (r.extractedFeatures?.core_functionalities || []);
+  $('builtStrengths').innerHTML = strengths.length
+    ? strengths.map(s => `<li style="background:#fff; border-radius:8px; padding:8px 12px; font-size:.86rem; border:1px solid #e3e6ee;"><b>✓</b> ${esc(s)}</li>`).join('')
+    : '<li>Baseline functionality defined.</li>';
+
+  const gaps = wi.critical_gaps || [];
+  $('improveGaps').innerHTML = gaps.length
+    ? gaps.map(g => `<div class="gap-item"><b>${esc(g.gap)}</b><div style="color:var(--ink3); font-size:.82rem; margin-top:2px;">Impact: ${esc(g.why_it_matters)}</div></div>`).join('')
+    : '<div class="gap-item">Review edge cases and error handling before production.</div>';
+
+  const future = wi.future_scope || [];
+  $('futureMilestones').innerHTML = future.length
+    ? future.map(f => `<div class="scope-item"><span class="evo-phase">${esc(f.phase || 'Future Scope')}</span> <b>${esc(f.scope_title)}</b><div style="color:var(--ink2); font-size:.82rem; margin-top:2px;">${esc(f.description)}</div></div>`).join('')
+    : '<div class="scope-item">Scale infrastructure and telemetry.</div>';
+
+  $('roadmapSection').hidden = false;
 }
+
 function drawRepos(){
   const a=R.discoveredRepositories||[];
   $('repos').innerHTML=a.slice(0,shown).map(x=>`<li><a href="${url(x.html_url)}" target="_blank" rel="noopener">${esc(x.full_name||x.name)}<span class="sr"> (opens in new tab)</span></a><p>${esc(x.description||'No description provided.')}</p><small>${esc(x.language||'Unknown language')} · ★ ${esc(x.stars||0)}</small></li>`).join('');
   $('more').hidden=a.length<=4;$('more').textContent=shown>=a.length?'Show fewer':`Show all ${a.length}`;
 }
+
 $('more').addEventListener('click',()=>{shown=shown>=(R.discoveredRepositories||[]).length?4:99;drawRepos()});
+
 $('pvs').addEventListener('click',e=>{
   const u=e.target.closest('[data-u]');if(!u)return;
   const p=R.innovationRecommendations[+u.dataset.u];
   $('desc').value=($('desc').value.trim()+` ${p.pivot_title}: ${p.how_it_differs}`).trim();
   u.textContent='Added';u.disabled=true;toast('Added to your idea. Check originality again to compare.');
 });
+
 $('edit').addEventListener('click',()=>{$('desc').scrollIntoView({behavior:'smooth',block:'center'});$('desc').focus()});
+
+$('printReport').addEventListener('click',()=>window.print());
+
 $('copy').addEventListener('click',async()=>{
   const sr=R.similarityResults||{},l=a=>(a||[]).map(x=>'- '+x).join('\n')||'- None';
   const t=`${$('title').value}\nOriginality: ${100-Math.round(sr.highestSimilarityScore||0)}/100\nClosest match: ${sr.topMatch?.repoName||'none'}\n\nFeature overlap:\n${l(R.explanation?.overlapping_features)}\n\nYour unique edge:\n${l(R.explanation?.distinctive_angles)}\n\nIdeas to stand out:\n${(R.innovationRecommendations||[]).map(p=>`- ${p.pivot_title}: ${p.how_it_differs}`).join('\n')||'- None'}`;
   try{await navigator.clipboard.writeText(t);toast('Report copied.')}catch{toast('Could not copy. Select the text instead.')}
 });
+
+// Persistent Anonymous Client ID per device
+function getClientId(){
+  let id = localStorage.getItem('projectshield_client_id');
+  if(!id){
+    id = 'dev_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 9);
+    localStorage.setItem('projectshield_client_id', id);
+  }
+  return id;
+}
+
+// History Drawer Controls
+function openHistory(){
+  $('historyDrawer').classList.add('open');
+  $('drawerBackdrop').classList.add('open');
+  loadHistory($('historySearch').value);
+}
+function closeHistory(){
+  $('historyDrawer').classList.remove('open');
+  $('drawerBackdrop').classList.remove('open');
+}
+
+$('openHistoryBtn')?.addEventListener('click', openHistory);
+$('openHistoryBtnMobile')?.addEventListener('click', openHistory);
+$('closeHistoryBtn')?.addEventListener('click', closeHistory);
+$('drawerBackdrop')?.addEventListener('click', closeHistory);
+$('historySearch')?.addEventListener('input', e => loadHistory(e.target.value));
+
+async function loadHistory(search = ''){
+  try {
+    const clientId = getClientId();
+    const params = new URLSearchParams({ clientId });
+    if(search) params.set('search', search);
+
+    const res = await fetch(`/api/projects?${params.toString()}`, {
+      headers: { 'x-client-id': clientId }
+    });
+    const json = await res.json();
+    if(!res.ok) return;
+
+    const data = json.data || {};
+    const items = data.items || [];
+    const total = data.total || items.length;
+
+    if($('historyBadge')) $('historyBadge').textContent = total;
+    if($('historyBadgeMob')) $('historyBadgeMob').textContent = total;
+
+    renderHistoryList(items);
+  } catch(err) {
+    console.warn('History load error:', err.message);
+  }
+}
+
+function renderHistoryList(items){
+  const c = $('historyList');
+  if(!c) return;
+
+  if(items.length === 0){
+    c.innerHTML = `
+      <div style="text-align:center; padding:40px 10px; color:var(--ink3);">
+        <span style="font-size:2rem; display:block; margin-bottom:8px;">📭</span>
+        <p style="font-weight:600; margin-bottom:4px;">No saved audits found</p>
+        <p style="font-size:.84rem;">Submit an idea on the main page to create your first saved audit report.</p>
+      </div>
+    `;
+    return;
+  }
+
+  c.innerHTML = items.map(item => {
+    const sim = Math.round(item.similarityResults?.highestSimilarityScore || 0);
+    const orig = 100 - sim;
+    const [color, bg, label] = state(orig);
+    const dateStr = item.createdAt ? new Date(item.createdAt).toLocaleDateString(undefined, { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+    const topMatch = item.similarityResults?.topMatch?.repoName || '';
+
+    return `
+      <div class="audit-card">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:6px;">
+          <h4 style="font-size:.96rem; font-weight:700; margin:0; line-height:1.3;">${esc(item.title)}</h4>
+          <span style="font:600 11px 'DM Mono',monospace; padding:2px 8px; border-radius:50px; background:${bg}; color:${color}; white-space:nowrap;">${orig}/100</span>
+        </div>
+        <div style="font-size:.8rem; color:var(--ink3); margin-bottom:8px;">
+          <span>${esc(item.category || 'General')}</span> · <span>${esc(dateStr)}</span>
+          ${topMatch ? `<div style="margin-top:2px; color:var(--ink2);">Closest: <b>${esc(topMatch)}</b> (${sim}% similar)</div>` : ''}
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+          <button type="button" class="sm" onclick="viewSavedReport('${item._id}')" style="flex:1; padding:6px 12px; font-size:.82rem; background:var(--ink); color:#fff; border:0;">👁️ Reopen Report</button>
+          <button type="button" class="sm" onclick="deleteSavedReport('${item._id}', event)" style="padding:6px 10px; font-size:.82rem; color:var(--red); border-color:rgba(165,42,42,.3);">🗑️</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function viewSavedReport(id){
+  try {
+    toast('Loading saved audit report...');
+    const res = await fetch(`/api/projects/${id}`);
+    const json = await res.json();
+    if(!res.ok) throw new Error(json.error || 'Failed to load audit report.');
+
+    const report = json.data;
+    closeHistory();
+    render(report);
+
+    // Populate form so they can continue editing
+    $('title').value = report.title || '';
+    $('cat').value = report.category || 'General';
+    $('desc').value = report.description || '';
+    $('problem').value = report.problem || '';
+    techs = report.technologies || [];
+    drawTags();
+
+    $('mcard').scrollIntoView({ behavior:'smooth' });
+    toast(`Loaded report: "${report.title}"`);
+  } catch(err) {
+    toast(err.message);
+  }
+}
+
+async function deleteSavedReport(id, e){
+  e.stopPropagation();
+  if(!confirm('Are you sure you want to delete this saved project audit?')) return;
+
+  try {
+    const res = await fetch(`/api/projects/${id}`, { method:'DELETE' });
+    if(!res.ok) throw new Error('Could not delete audit.');
+    toast('Audit deleted.');
+    loadHistory($('historySearch').value);
+  } catch(err) {
+    toast(err.message);
+  }
+}
+
+// Initial load on page load
+loadHistory();
 </script>
 </body>
 </html>

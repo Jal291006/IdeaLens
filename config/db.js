@@ -1,4 +1,12 @@
 const mongoose = require('mongoose');
+const dns = require('dns');
+
+// Fix for Windows / ISP DNS resolvers failing on mongodb+srv:// SRV lookups
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch (dnsErr) {
+  // Ignore if permissions or platform prevent changing DNS servers
+}
 
 let isConnected = false;
 
@@ -10,11 +18,11 @@ async function connectDB(uri) {
 
   try {
     const conn = await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 5000 // Timeout after 5s if MongoDB isn't reachable
+      serverSelectionTimeoutMS: 8000 // 8s timeout
     });
 
     isConnected = true;
-    console.log(`✅ MongoDB Connected successfully: ${conn.connection.host}`);
+    console.log(`✅ MongoDB Atlas Connected successfully: ${conn.connection.host}`);
     return true;
   } catch (err) {
     isConnected = false;

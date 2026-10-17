@@ -210,9 +210,56 @@ async function discoverRelevantRepositories(projectData) {
   };
 }
 
+/**
+ * Fetches repository details directly from a GitHub URL
+ * @param {string} repoUrl e.g. "https://github.com/owner/repo"
+ */
+async function fetchRepoByUrl(repoUrl) {
+  if (!repoUrl || typeof repoUrl !== 'string') {
+    throw new Error('Please provide a valid GitHub repository URL.');
+  }
+
+  const clean = repoUrl.trim().replace(/\/+$/, '');
+  const match = clean.match(/github\.com\/([^\/]+)\/([^\/]+)/i);
+
+  if (!match) {
+    throw new Error('Invalid URL. Expected format: https://github.com/owner/repository');
+  }
+
+  const owner = match[1];
+  const repo = match[2];
+  const fullName = `${owner}/${repo}`;
+
+  const res = await axios.get(`https://api.github.com/repos/${fullName}`, {
+    headers: getGithubHeaders(),
+    timeout: 5000
+  });
+
+  const data = res.data;
+  const readme = await fetchRepoReadme(fullName);
+
+  const tech = [];
+  if (data.language) tech.push(data.language);
+  if (Array.isArray(data.topics)) tech.push(...data.topics);
+  if (tech.length === 0) tech.push('JavaScript');
+
+  return {
+    title: data.name,
+    fullName: data.full_name,
+    repoUrl: data.html_url,
+    description: data.description || 'No description provided in repository.',
+    readmeSnippet: readme,
+    technologies: tech,
+    stars: data.stargazers_count,
+    language: data.language || 'Code'
+  };
+}
+
 module.exports = {
   generateSearchQueries,
   searchRepositoriesAcrossQueries,
   fetchRepoReadme,
-  discoverRelevantRepositories
+  discoverRelevantRepositories,
+  fetchRepoByUrl
 };
+
