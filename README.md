@@ -1,4 +1,4 @@
-# 🛡️ ProjectShield AI
+# 🛡️ IdeaLens AI
 
 > **AI-Powered Duplicate Project & Idea Detection with Innovation Advisory**  
 > Developed for college hackathons to validate project proposals against real public codebases, detect overlapping features, explain similarities, and recommend unique technical pivots to stand out to judges.
