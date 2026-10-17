@@ -34,7 +34,7 @@ async function startServer() {
 
   const server = app.listen(config.PORT, () => {
     console.log(`===============================================`);
-    console.log(`🛡️  ProjectShield AI Server listening on port ${config.PORT}`);
+    console.log(`🛡️  IdeaLens Server listening on port ${config.PORT}`);
     console.log(`🔗 Web Dashboard: http://localhost:${config.PORT}`);
     console.log(`🩺 Health API: http://localhost:${config.PORT}/api/health`);
     console.log(`📡 Projects API: http://localhost:${config.PORT}/api/projects`);

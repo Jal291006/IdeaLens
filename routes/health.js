@@ -9,7 +9,7 @@ router.get('/health', (req, res) => {
   res.json({
     success: true,
     status: 'online',
-    appName: 'ProjectShield AI',
+    appName: 'IdeaLens',
     version: '1.0.0',
     timestamp: new Date().toISOString(),
     services: {
