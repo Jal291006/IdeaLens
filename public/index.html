@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ProjectShield AI — Duplicate Idea & Innovation Detector</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --bg-color: #f8fafc;
+    }
+    body {
+      background-color: var(--bg-color);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #1e293b;
+    }
+    .hero-badge {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      border-radius: 9999px;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: inline-block;
+    }
+    .card {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+    .repo-card {
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      border-left: 4px solid #3b82f6;
+    }
+    .repo-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.06);
+    }
+    .pivot-card {
+      border-left: 4px solid #10b981;
+      background: #f0fdf4;
+    }
+    .quick-sample-btn {
+      font-size: 0.8rem;
+      border-radius: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3">
+    <div class="container">
+      <a class="navbar-brand fw-bold d-flex align-items-center" href="/">
+        <span class="fs-4 me-2">🛡️</span> ProjectShield AI
+      </a>
+      <span class="navbar-text text-light small d-none d-md-inline">
+        Live GitHub Discovery + Gemini Innovation Advisor
+      </span>
+    </div>
+  </nav>
+
+  <div class="container my-4">
+    
+    <!-- Header Banner -->
+    <div class="text-center mb-4">
+      <div class="hero-badge mb-2">Hackathon Project Duplicate Detector</div>
+      <h2 class="fw-bold">Validate Your Project Idea Against Live GitHub Code</h2>
+      <p class="text-muted mx-auto" style="max-width: 650px;">
+        Search live public repositories via GitHub REST API, compute similarity, identify duplicate features, and discover AI-recommended pivots to stand out to judges.
+      </p>
+    </div>
+
+    <div class="row g-4">
+      
+      <!-- Left Column: Input Form -->
+      <div class="col-lg-5">
+        <div class="card p-4">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="fw-bold mb-0">Project Submission</h5>
+            <small class="text-muted">Fill & Search</small>
+          </div>
+
+          <!-- Quick Presets for Demo -->
+          <div class="mb-3">
+            <small class="fw-semibold text-secondary d-block mb-1">⚡ Quick Demo Presets:</small>
+            <div class="d-flex flex-wrap gap-1">
+              <button class="btn btn-sm btn-outline-secondary quick-sample-btn" onclick="loadSample('pothole')">Pothole AI</button>
+              <button class="btn btn-sm btn-outline-secondary quick-sample-btn" onclick="loadSample('health')">Calorie Tracker</button>
+              <button class="btn btn-sm btn-outline-secondary quick-sample-btn" onclick="loadSample('pdf')">DocuChat RAG</button>
+            </div>
+          </div>
+
+          <form id="projectForm" onsubmit="handleAnalyze(event)">
+            
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Project Title <span class="text-danger">*</span></label>
+              <input type="text" id="projectTitle" class="form-control" placeholder="e.g. Smart Pothole Detection System" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Category</label>
+              <select id="projectCategory" class="form-select">
+                <option value="Smart Cities">Smart Cities & IoT</option>
+                <option value="Healthcare">Healthcare & Fitness</option>
+                <option value="Education">EdTech & Learning</option>
+                <option value="Fintech">FinTech & Finance</option>
+                <option value="Developer Tools">Developer Tools & Productivity</option>
+                <option value="Other">General / Other</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Technologies / Tools <span class="text-danger">*</span></label>
+              <input type="text" id="projectTech" class="form-control" placeholder="e.g. Python, OpenCV, YOLO, Flutter" required>
+              <small class="text-muted">Separate with commas</small>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Problem Being Solved</label>
+              <textarea id="projectProblem" class="form-control" rows="2" placeholder="What specific pain point does your idea target?"></textarea>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Project Description & Solution <span class="text-danger">*</span></label>
+              <textarea id="projectDesc" class="form-control" rows="4" placeholder="Explain your core architecture, what the system does, and user flow..." required></textarea>
+            </div>
+
+            <button type="submit" id="submitBtn" class="btn btn-primary w-100 py-2 fw-semibold">
+              🔍 Search GitHub & Analyze with Gemini
+            </button>
+          </form>
+
+        </div>
+      </div>
+
+      <!-- Right Column: Results & Live Insights -->
+      <div class="col-lg-7">
+        
+        <!-- Live Loading State -->
+        <div id="loadingState" class="card p-5 text-center d-none">
+          <div class="spinner-border text-primary mx-auto mb-3" style="width: 3.5rem; height: 3.5rem;" role="status"></div>
+          <h5 class="fw-bold text-dark" id="loadingStage">Querying GitHub REST API...</h5>
+          <p class="text-muted small mb-0" id="loadingDetails">Searching public repositories, analyzing READMEs, and requesting Gemini AI evaluation.</p>
+        </div>
+
+        <!-- Initial Blank Placeholder -->
+        <div id="emptyState" class="card p-5 text-center text-muted">
+          <span class="fs-1 mb-2">🔎</span>
+          <h5 class="fw-bold text-dark">Ready for Analysis</h5>
+          <p class="mb-0">Enter your project title and description on the left (or click a quick preset) to test against public GitHub repositories.</p>
+        </div>
+
+        <!-- Results Dashboard -->
+        <div id="resultsContainer" class="d-none">
+          
+          <!-- Similarity Risk Banner -->
+          <div class="card p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h5 class="fw-bold mb-0">Similarity Risk Evaluation</h5>
+              <span id="riskBadge" class="badge fs-6 px-3 py-2 bg-danger">High Duplicate Risk</span>
+            </div>
+            
+            <div class="d-flex align-items-baseline mb-2">
+              <span class="fs-1 fw-bold me-2" id="scoreDisplay">68%</span>
+              <span class="text-muted" id="scoreSubtitle">match with existing GitHub code</span>
+            </div>
+
+            <div class="progress mb-2" style="height: 12px;">
+              <div id="scoreBar" class="progress-bar bg-danger" role="progressbar" style="width: 68%;"></div>
+            </div>
+
+            <small class="text-muted" id="highestMatchText">
+              Top match: <strong>sharmi911/RoadEye</strong>
+            </small>
+          </div>
+
+          <!-- Live GitHub Repositories Discovered -->
+          <div class="card p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="fw-bold mb-0">🌐 Discovered GitHub Repositories</h5>
+              <span class="badge bg-secondary" id="repoCountBadge">0 Found</span>
+            </div>
+            <div id="repoList" class="d-flex flex-column gap-2">
+              <!-- Injected dynamically -->
+            </div>
+          </div>
+
+          <!-- Feature Overlap vs Differences -->
+          <div class="card p-4 mb-4">
+            <h5 class="fw-bold mb-3">⚖️ Feature Overlap & Differentiation</h5>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="p-3 bg-light rounded border border-danger-subtle">
+                  <h6 class="fw-bold text-danger mb-2">⚠️ Overlapping Features (Already Exist)</h6>
+                  <ul id="overlapList" class="ps-3 mb-0 text-muted small"></ul>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="p-3 bg-light rounded border border-primary-subtle">
+                  <h6 class="fw-bold text-primary mb-2">✨ Distinctive Angles (Potential Novelty)</h6>
+                  <ul id="distinctList" class="ps-3 mb-0 text-muted small"></ul>
+                </div>
+              </div>
+            </div>
+            <div class="mt-3 p-2 bg-light rounded border">
+              <small class="text-secondary" id="evidenceText"></small>
+            </div>
+          </div>
+
+          <!-- Gemini Innovation Opportunities -->
+          <div class="card p-4 border-success">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="d-flex align-items-center">
+                <span class="fs-4 me-2">🚀</span>
+                <h5 class="fw-bold text-success mb-0">Opportunities for Innovation (How to Stand Out)</h5>
+              </div>
+              <span class="badge bg-success-subtle text-success border border-success">AI Advisor</span>
+            </div>
+            <p class="text-muted small mb-3">
+              Gemini analyzed gaps in existing repositories and generated these project-specific pivots:
+            </p>
+            <div id="innovationList" class="d-flex flex-column gap-3">
+              <!-- Injected dynamically -->
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <footer class="text-center py-4 text-muted small border-top mt-5">
+    ProjectShield AI • Built for 6-hr College Hackathon • Live GitHub REST API & Gemini Integration
+  </footer>
+
+  <!-- Frontend Logic -->
+  <script>
+    // Demo presets for fast testing
+    const samples = {
+      pothole: {
+        title: "Smart Pothole Detection & Road Damage Mapping",
+        category: "Smart Cities",
+        tech: "Python, OpenCV, YOLO, Flutter, GPS",
+        problem: "Road damage causes thousands of vehicle accidents and damage annually without fast reporting.",
+        desc: "An edge-computed mobile system using smartphone or dashboard cameras with YOLO object detection to identify potholes, measure damage severity, tag GPS coordinates, and transmit coordinates to municipal road maintenance servers."
+      },
+      health: {
+        title: "HealthTrack AI - Smart Calorie & Meal Logger",
+        category: "Healthcare",
+        tech: "React Native, Node.js, Express, MongoDB, Vision AI",
+        problem: "Manual food journaling is tedious and users abandon diet tracking within two weeks.",
+        desc: "Users photograph their food plates. The system detects meal items, computes estimated portion sizes, calculates calorie and macronutrient breakdown, and gives daily dietary alerts."
+      },
+      pdf: {
+        title: "DocuChat - Chat with PDF Research Papers using RAG",
+        category: "Developer Tools",
+        tech: "Python, FastAPI, LangChain, ChromaDB, React",
+        problem: "Students and researchers struggle to read 50-page technical papers quickly.",
+        desc: "Upload technical PDFs or textbooks, vectorize content into vector embeddings, and ask questions with exact page references and cited quotes."
+      }
+    };
+
+    function loadSample(key) {
+      const s = samples[key];
+      if (!s) return;
+      document.getElementById('projectTitle').value = s.title;
+      document.getElementById('projectCategory').value = s.category;
+      document.getElementById('projectTech').value = s.tech;
+      document.getElementById('projectProblem').value = s.problem;
+      document.getElementById('projectDesc').value = s.desc;
+    }
+
+    async function handleAnalyze(e) {
+      e.preventDefault();
+
+      const title = document.getElementById('projectTitle').value.trim();
+      const category = document.getElementById('projectCategory').value;
+      const techRaw = document.getElementById('projectTech').value.trim();
+      const problem = document.getElementById('projectProblem').value.trim();
+      const description = document.getElementById('projectDesc').value.trim();
+
+      const technologies = techRaw.split(',').map(t => t.trim()).filter(Boolean);
+
+      if (!title || !description || technologies.length === 0) {
+        alert("Please fill in Title, Description, and at least one Technology.");
+        return;
+      }
+
+      // UI updates for loading
+      document.getElementById('emptyState').classList.add('d-none');
+      document.getElementById('resultsContainer').classList.add('d-none');
+      document.getElementById('loadingState').classList.remove('d-none');
+      document.getElementById('submitBtn').disabled = true;
+
+      try {
+        const response = await fetch('/api/projects/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title,
+            category,
+            technologies,
+            problem,
+            solution: description,
+            description
+          })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || 'Failed to complete project analysis');
+        }
+
+        renderDashboard(result.data);
+      } catch (err) {
+        alert("Analysis error: " + err.message);
+        document.getElementById('emptyState').classList.remove('d-none');
+      } finally {
+        document.getElementById('loadingState').classList.add('d-none');
+        document.getElementById('submitBtn').disabled = false;
+      }
+    }
+
+    function renderDashboard(report) {
+      document.getElementById('resultsContainer').classList.remove('d-none');
+
+      // 1. Similarity Score & Risk
+      const score = report.similarityResults?.highestSimilarityScore || 0;
+      const risk = report.similarityResults?.overallRisk || 'Moderate Overlap';
+
+      const scoreDisplay = document.getElementById('scoreDisplay');
+      const scoreBar = document.getElementById('scoreBar');
+      const riskBadge = document.getElementById('riskBadge');
+
+      scoreDisplay.innerText = score + '%';
+      scoreBar.style.width = score + '%';
+      riskBadge.innerText = risk;
+
+      if (score >= 65) {
+        scoreBar.className = 'progress-bar bg-danger';
+        riskBadge.className = 'badge fs-6 px-3 py-2 bg-danger';
+      } else if (score >= 35) {
+        scoreBar.className = 'progress-bar bg-warning text-dark';
+        riskBadge.className = 'badge fs-6 px-3 py-2 bg-warning text-dark';
+      } else {
+        scoreBar.className = 'progress-bar bg-success';
+        riskBadge.className = 'badge fs-6 px-3 py-2 bg-success';
+      }
+
+      const topMatch = report.similarityResults?.topMatch;
+      document.getElementById('highestMatchText').innerHTML = topMatch
+        ? `Top match detected: <strong><a href="${topMatch.repoUrl}" target="_blank" class="text-decoration-none">${topMatch.repoName}</a></strong> (${topMatch.metrics?.compositeScore || score}% similarity)`
+        : 'No direct public repository match detected.';
+
+      // 2. Discovered GitHub Repositories List
+      const repos = report.discoveredRepositories || [];
+      document.getElementById('repoCountBadge').innerText = `${repos.length} Repositories Found`;
+
+      const repoList = document.getElementById('repoList');
+      if (repos.length === 0) {
+        repoList.innerHTML = `<div class="p-3 text-muted small bg-light rounded">No matching public repositories found on GitHub for this query.</div>`;
+      } else {
+        repoList.innerHTML = repos.map(r => `
+          <div class="card p-3 repo-card">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <a href="${r.html_url}" target="_blank" class="fw-bold text-primary text-decoration-none fs-6">
+                  ${r.full_name || r.name} ↗
+                </a>
+                <p class="text-muted small mb-1 mt-1">${r.description || 'No description provided.'}</p>
+                <div class="d-flex gap-2 align-items-center">
+                  <span class="badge bg-light text-dark border">💻 ${r.language || 'Code'}</span>
+                  <span class="badge bg-light text-dark border">⭐ ${r.stars || 0}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // 3. Overlap & Differences
+      const overlapList = document.getElementById('overlapList');
+      const overlaps = report.explanation?.overlapping_features || [];
+      overlapList.innerHTML = overlaps.length > 0
+        ? overlaps.map(item => `<li class="mb-1">${item}</li>`).join('')
+        : '<li>No major functionality overlap detected.</li>';
+
+      const distinctList = document.getElementById('distinctList');
+      const distincts = report.explanation?.distinctive_angles || [];
+      distinctList.innerHTML = distincts.length > 0
+        ? distincts.map(item => `<li class="mb-1">${item}</li>`).join('')
+        : '<li>Project appears structurally similar to existing repos.</li>';
+
+      document.getElementById('evidenceText').innerText = 
+        `Evidence Summary: ${report.explanation?.evidence_summary || 'Analysis computed via live GitHub search and semantic comparison.'}`;
+
+      // 4. Innovation Opportunities
+      const innovationList = document.getElementById('innovationList');
+      const recs = report.innovationRecommendations || [];
+      if (recs.length === 0) {
+        innovationList.innerHTML = `<p class="text-muted small">No specific pivots generated.</p>`;
+      } else {
+        innovationList.innerHTML = recs.map(rec => {
+          let badgeColor = 'bg-primary';
+          if (rec.implementation_complexity === 'Low') badgeColor = 'bg-success';
+          if (rec.implementation_complexity === 'High') badgeColor = 'bg-danger';
+
+          return `
+            <div class="card p-3 pivot-card">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <h6 class="fw-bold text-dark mb-0">💡 ${rec.pivot_title}</h6>
+                <span class="badge ${badgeColor}">${rec.implementation_complexity} Complexity</span>
+              </div>
+              <p class="small text-secondary mb-1">${rec.reason_for_suggestion}</p>
+              <div class="small text-success fw-semibold">
+                🎯 Differentiator: ${rec.how_it_differs}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+  </script>
+
+  <!-- Bootstrap Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
