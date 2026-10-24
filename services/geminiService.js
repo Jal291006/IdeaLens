@@ -40,6 +40,7 @@ if (config.GEMINI_API_KEY) {
 
 // Resilient model fallback list
 const MODEL_CANDIDATES = ['gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-flash-latest', 'gemini-3.5-flash-lite'];
+const GEMINI_REQUEST_TIMEOUT_MS = 30000;
 
 async function callGeminiWithFallback(prompt) {
   if (!genAI) return null;
@@ -50,11 +51,20 @@ async function callGeminiWithFallback(prompt) {
         model: modelName,
         generationConfig: { responseMimeType: 'application/json' }
       });
-      const result = await model.generateContent(prompt);
+      const result = await model.generateContent(prompt, {
+        timeout: GEMINI_REQUEST_TIMEOUT_MS
+      });
       const text = result.response.text();
       return JSON.parse(text);
     } catch (err) {
-      console.warn(`Model ${modelName} call warning: ${err.message.slice(0, 100)}. Trying fallback...`);
+      const status = Number(err.status) || 0;
+      const timedOut = err.name === 'AbortError' || /abort|timeout/i.test(err.message || '');
+      const reason = status ? `HTTP ${status}` : timedOut ? 'request timed out' : 'network or response error';
+      console.warn(`Gemini model ${modelName} failed (${reason}).`);
+
+      // Switching models will not fix connectivity, quota, server, or response
+      // errors. Only try another candidate when the requested model is missing.
+      if (status !== 404) return null;
     }
   }
   return null;

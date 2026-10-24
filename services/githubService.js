@@ -66,7 +66,7 @@ function generateSearchQueries(title, description, technologies = []) {
     queries.push('hackathon project');
   }
 
-  return queries.slice(0, 3); // Max 3 queries to respect rate limits
+  return queries.slice(0, 2); // Limit external search round trips per analysis
 }
 
 /**
@@ -190,7 +190,7 @@ async function discoverRelevantRepositories(projectData) {
   );
 
   const searchResult = await searchRepositoriesAcrossQueries(queries, 4);
-  const topCandidates = searchResult.repositories.slice(0, 6); // Keep top 6 to prevent slow analysis
+  const topCandidates = searchResult.repositories.slice(0, 3); // Enrich only the strongest candidates
 
   // Fetch READMEs in parallel for top candidates
   const enriched = await Promise.all(

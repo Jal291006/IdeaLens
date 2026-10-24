@@ -7,8 +7,7 @@ const { rankCandidateRepositories } = require('../services/similarityEngine');
 const {
   extractProjectFeatures,
   explainSimilaritiesAndDifferences,
-  generateInnovationRecommendations,
-  generateEvolutionRoadmap
+  generateInnovationRecommendations
 } = require('../services/geminiService');
 const {
   saveAnalysisReport,
@@ -57,11 +56,13 @@ router.post('/analyze', analyzeLimiter, async (req, res, next) => {
     // 3. Mathematical similarity calculation
     const similarityResults = rankCandidateRepositories(project, githubDiscovery.repositories);
 
-    // 4. Gemini AI Feature Extraction
-    const extractedFeatures = await extractProjectFeatures(project);
-
-    // 5. Gemini AI Explanation & Differences
-    const explanation = await explainSimilaritiesAndDifferences(project, similarityResults.comparisons);
+    // Gemini steps are independent, so run them concurrently instead of making
+    // the user wait for each provider round trip in sequence.
+    const [extractedFeatures, explanation, innovation] = await Promise.all([
+      extractProjectFeatures(project),
+      explainSimilaritiesAndDifferences(project, similarityResults.comparisons),
+      generateInnovationRecommendations(project, similarityResults.comparisons)
+    ]);
 
     // Cliché Override: If project is an overdone hackathon cliché, enforce high duplicate risk
     if (explanation.is_critically_cliche && (explanation.cliche_duplicate_penalty || 85) > similarityResults.highestSimilarityScore) {
@@ -69,13 +70,7 @@ router.post('/analyze', analyzeLimiter, async (req, res, next) => {
       similarityResults.overallRisk = 'High Duplicate Risk';
     }
 
-    // 6. Gemini AI Innovation Recommendations
-    const innovation = await generateInnovationRecommendations(project, similarityResults.comparisons);
-
-    // 6b. Gemini Project Evolution: What user built vs What to improve & Future Scope
-    const evolutionRoadmap = await generateEvolutionRoadmap(project, similarityResults.comparisons);
-
-    // 7. Compile report
+    // Compile report
     const reportData = {
       title: project.title,
       description: project.description,
@@ -102,7 +97,6 @@ router.post('/analyze', analyzeLimiter, async (req, res, next) => {
       },
       explanation,
       innovationRecommendations: innovation.recommendations,
-      evolutionRoadmap,
       status: 'completed',
       meta: {
         queriesUsed: githubDiscovery.queriesUsed,
